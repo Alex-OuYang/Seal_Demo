@@ -9,15 +9,41 @@ and open the template in the editor.
         <title>Seal Demo</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+        <link rel="stylesheet" href="css/w3.css">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
         <script async src="https://docs.opencv.org/3.3.1/opencv.js" type="text/javascript" onload="onOpenCvReady()"></script>
         <script>
             function onOpenCvReady() {
-                console.log("opencv is onload");
+                var show_div = document.getElementById("show_div");
+                show_div.className = "w3-panel w3-pale-green w3-center";
+                document.getElementById("show_opencv_onload").innerHTML = "<strong>OpenCV is onload！！！</strong>";
             }
+            
         </script>
     </head>
-    <body>
-
+    <body class="w3-light-grey">
+        <div class="w3-bar w3-black">
+            <div class="w3-bar-item w3-right"><span class="w3-bar-item w3-right"><i class="fa fa-sign-out"></i></span></div>
+        </div>
+        <div class="w3-container">
+            <div class="w3-panel w3-pale-red w3-center" id="show_div">
+                <p class="w3-large" id="show_opencv_onload"><strong>OpenCV is loading ......</strong></p>
+            </div>
+        </div>
+        <div class="w3-main">
+            <div class="w3-container w3-col l6 m6 s6">
+                <input type="button" value="證券商上傳印鑑" class="w3-button w3-block w3-blue w3-margin-bottom"/>
+                <div class="w3-card-4 w3-center" >
+                    <canvas class="w3-border" id="securities_seal"></canvas>
+                </div>
+            </div>
+            <div class="w3-container w3-col l6 m6 s6">
+                <input type="button" value="銀行上傳印鑑" class="w3-button w3-block w3-blue w3-margin-bottom"/>
+                <div class="w3-card-4 w3-center" >
+                    <canvas class="w3-border" id="bank_seal"></canvas>
+                </div>
+            </div>
+        </div>
     </body>
 </html>
