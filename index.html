@@ -19,7 +19,7 @@ and open the template in the editor.
                 show_div.className = "w3-panel w3-pale-green w3-center";
                 document.getElementById("show_opencv_onload").innerHTML = "<strong>OpenCV is onload！！！</strong>";
             }
-            
+
         </script>
     </head>
     <body class="w3-light-grey">
@@ -32,16 +32,34 @@ and open the template in the editor.
             </div>
         </div>
         <div class="w3-main">
+            <!--證券商-->
             <div class="w3-container w3-col l6 m6 s6">
-                <input type="button" value="證券商上傳印鑑" class="w3-button w3-block w3-blue w3-margin-bottom"/>
                 <div class="w3-card-4 w3-center" >
-                    <canvas class="w3-border" id="securities_seal"></canvas>
+                    <header class="w3-container w3-blue">
+                        <h4><b>&nbsp;&nbsp;證&nbsp;券&nbsp;商&nbsp;端&nbsp;上&nbsp;傳&nbsp;印&nbsp;鑑</b></h4>
+                    </header>
+                    <div class="w3-container w3-margin-top w3-margin-bottom">
+                        <input class="w3-input w3-border" type="file" accept="image/*"/>
+                    </div>
+                    <div class="w3-container w3-margin-top w3-margin-bottom">
+                        <canvas class="w3-border" id="securities_seal"></canvas>
+                    </div>
+                    <footer class="w3-container"></footer>
                 </div>
             </div>
+            <!--銀行端-->
             <div class="w3-container w3-col l6 m6 s6">
-                <input type="button" value="銀行上傳印鑑" class="w3-button w3-block w3-blue w3-margin-bottom"/>
                 <div class="w3-card-4 w3-center" >
-                    <canvas class="w3-border" id="bank_seal"></canvas>
+                    <header class="w3-container w3-blue">
+                        <h4><b>&nbsp;&nbsp;銀&nbsp;行&nbsp;端&nbsp;上&nbsp;傳&nbsp;印&nbsp;鑑</b></h4>
+                    </header>
+                    <div class="w3-container w3-margin-top w3-margin-bottom">
+                        <input class="w3-input w3-border" type="file" accept="image/*"/>
+                    </div>
+                    <div class="w3-container w3-margin-top w3-margin-bottom">
+                        <canvas class="w3-border" id="securities_seal"></canvas>
+                    </div>
+                    <footer class="w3-container"></footer>
                 </div>
             </div>
         </div>
