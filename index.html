@@ -38,7 +38,7 @@ and open the template in the editor.
         </div>
         <div class="w3-main">
             <!--證券商-->
-            <div class="w3-container w3-col l6 m12 s12">
+            <div class="w3-container w3-col l6 m12 s12 w3-margin-top">
                 <div class="w3-card-4 w3-center" >
                     <header class="w3-container w3-blue">
                         <h4><b>&nbsp;&nbsp;證&nbsp;券&nbsp;商&nbsp;端&nbsp;上&nbsp;傳&nbsp;印&nbsp;鑑</b></h4>
@@ -62,7 +62,7 @@ and open the template in the editor.
                 </div>
             </div>
             <!--銀行端-->
-            <div class="w3-container w3-col l6 m12 s12">
+            <div class="w3-container w3-col l6 m12 s12 w3-margin-top">
                 <div class="w3-card-4 w3-center" >
                     <header class="w3-container w3-blue">
                         <h4><b>&nbsp;&nbsp;銀&nbsp;行&nbsp;端&nbsp;上&nbsp;傳&nbsp;印&nbsp;鑑</b></h4>
@@ -85,6 +85,47 @@ and open the template in the editor.
                     </footer>
                 </div>
             </div>
+            <!--當筆資料結果-->
+            <div class="w3-container w3-col l2 w3-margin-top"></div>
+            <div class="w3-container w3-col l8 m12 s12 w3-margin-top">
+                <div class="w3-card-4 w3-center">
+                    <div class="w3-margin-top w3-margin-bottom">
+                        <button class="w3-button w3-block w3-green">比對結果</button>
+                    </div>
+                    <div class="w3-container w3-margin-top w3-margin-bottom">
+                        <div class="w3-container w3-margin">
+                            <div class="w3-col l2 m2 s2">
+                                <label><b>Transaction<br>Hash</b></label>
+                            </div>
+                            <div class="w3-col l10 m10 s10">
+                                <input class="w3-input w3-border" type="text" id="transaction_hash" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w3-container w3-margin-top w3-margin-bottom">
+                        <div class="w3-container w3-margin">
+                            <div class="w3-col l2 m2 s2">
+                                <label><b>比對結果</b></label>
+                            </div>
+                            <div class="w3-col l10 m10 s10">
+                                <input class="w3-input w3-border" type="text" id="compare_result" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w3-container w3-margin-top w3-margin-bottom">
+                        <div class="w3-container w3-margin">
+                            <div class="w3-col l2 m2 s2">
+                                <label><b>相似度</b></label>
+                            </div>
+                            <div class="w3-col l10 m10 s10">
+                                <input class="w3-input w3-border" type="text" id="compare_result" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <footer class="w3-container"></footer>
+                </div>
+            </div>
+            <div class="w3-container w3-col l2 w3-margin-top"></div>
         </div>
     </body>
 </html>
