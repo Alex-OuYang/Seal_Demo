@@ -60,7 +60,13 @@ and open the template in the editor.
                         tempcanvasid = "bank_seal";
                     }
                     let mat = cv.imread(imgsrc);//放 input img 後顯示的 img tag id
-                    cv.imshow(tempcanvasid, mat);//結果的canvas id
+                    let dst = new cv.Mat();
+                    var height = mat.size().height;//src.rows
+                    var width = mat.size().width;//src.cols
+                    var rewidth = 300;
+                    var reheight = (height * rewidth) / width;
+                    cv.resize(mat, dst, new cv.Size(rewidth, reheight), 0, 0, cv.INTER_LINEAR);
+                    cv.imshow(tempcanvasid, dst);//結果的canvas id
                     mat.delete();
                 };
                 GetCompareResult();
