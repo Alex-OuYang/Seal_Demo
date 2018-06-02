@@ -13,6 +13,7 @@ and open the template in the editor.
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
         <script async src="https://docs.opencv.org/3.3.1/opencv.js" type="text/javascript" onload="onOpenCvReady()"></script>
+        <script src="js/web3.js" type="text/javascript"></script>
         <script src="js/ipfs.js" type="text/javascript"></script>
         <script src="js/buffer.js" type="text/javascript"></script>
         <style>
@@ -21,6 +22,25 @@ and open the template in the editor.
             }
         </style>
         <script>
+            //連接區塊鏈
+            var connectIP = "140.124.93.79";
+            //var connectIP = "localhost";
+            var Web3 = require('web3');
+            var web3 = new Web3();
+            web3.setProvider(new web3.providers.HttpProvider("http://" + connectIP + ":8545"));
+            var isConnected = web3.isConnected();
+            if (!isConnected) {
+                alert("請先連接區塊鏈！！");
+            }
+            //連接區塊鏈
+
+
+            //合約區
+            var contractABI = [{"constant": false, "inputs": [{"name": "sname", "type": "string"}, {"name": "sformat", "type": "string"}, {"name": "sipfshash", "type": "string"}, {"name": "bname", "type": "string"}, {"name": "bformat", "type": "string"}, {"name": "bipfshash", "type": "string"}, {"name": "cpresult", "type": "string"}, {"name": "cpsimilarity", "type": "string"}], "name": "saveseal", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function"}];
+            var contractByteCode = '0x608060405234801561001057600080fd5b5061042c806100206000396000f300608060405260043610610041576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff1680636fcbf25f14610046575b600080fd5b34801561005257600080fd5b50610297600480360381019080803590602001908201803590602001908080601f0160208091040260200160405190810160405280939291908181526020018383808284378201915050505050509192919290803590602001908201803590602001908080601f0160208091040260200160405190810160405280939291908181526020018383808284378201915050505050509192919290803590602001908201803590602001908080601f0160208091040260200160405190810160405280939291908181526020018383808284378201915050505050509192919290803590602001908201803590602001908080601f0160208091040260200160405190810160405280939291908181526020018383808284378201915050505050509192919290803590602001908201803590602001908080601f0160208091040260200160405190810160405280939291908181526020018383808284378201915050505050509192919290803590602001908201803590602001908080601f0160208091040260200160405190810160405280939291908181526020018383808284378201915050505050509192919290803590602001908201803590602001908080601f0160208091040260200160405190810160405280939291908181526020018383808284378201915050505050509192919290803590602001908201803590602001908080601f0160208091040260200160405190810160405280939291908181526020018383808284378201915050505050509192919290505050610299565b005b87600090805190602001906102af92919061035b565b5086600190805190602001906102c692919061035b565b5085600290805190602001906102dd92919061035b565b5084600390805190602001906102f492919061035b565b50836004908051906020019061030b92919061035b565b50826005908051906020019061032292919061035b565b50816006908051906020019061033992919061035b565b50806007908051906020019061035092919061035b565b505050505050505050565b828054600181600116156101000203166002900490600052602060002090601f016020900481019282601f1061039c57805160ff19168380011785556103ca565b828001600101855582156103ca579182015b828111156103c95782518255916020019190600101906103ae565b5b5090506103d791906103db565b5090565b6103fd91905b808211156103f95760008160009055506001016103e1565b5090565b905600a165627a7a72305820d5ebdbf24289605431404281b6afdd11b88da8200a302cc6bc88c99e3c5353e70029';
+            var contractAddress = "";
+            //合約區
+
             //IPFS 初始
             //const ipfs = window.IpfsApi('localhost', '5001');//使用 IPFS daemon 
             var ipfs = window.IpfsApi({host: 'ipfs.infura.io', port: '5001', protocol: 'https'});//使用 public IPFS
@@ -66,7 +86,6 @@ and open the template in the editor.
                         document.getElementById("bank_format").value = fileformat;
                     }
                     const buf = buffer.Buffer(reader.result);//ArrayBuffer to buffer
-                    console.log(buf);
                     IPFSAdd(buf, ipfshash_str);
                 };
                 reader.readAsArrayBuffer(file);
@@ -96,12 +115,18 @@ and open the template in the editor.
                 }
             }
             function CompareSeal() {
-                var securitiesCanvas = document.getElementById("securities_seal");
-                var bankCanvas = document.getElementById("bank_seal");
-                let securitiesSeal = cv.imread(securitiesCanvas);
-                let bankSeal = cv.imread(bankCanvas);
-                createHist(securitiesSeal, "securities_seal");
-                createHist(bankSeal, "bank_seal");
+                var securitiesipfshash = document.getElementById("securities_ipfshash").value;
+                var bankipfshash = document.getElementById("bank_ipfshash").value;
+                if (securitiesipfshash.length !== 0 && bankipfshash.length !== 0) {
+                    var securitiesCanvas = document.getElementById("securities_seal");
+                    var bankCanvas = document.getElementById("bank_seal");
+                    let securitiesSeal = cv.imread(securitiesCanvas);
+                    let bankSeal = cv.imread(bankCanvas);
+                    createHist(securitiesSeal, "securities_seal");
+                    createHist(bankSeal, "bank_seal");
+                } else {
+                    alert("圖片未上傳！！");
+                }
             }
             function createHist(imgin, imgstring) {
                 var histobject = {};
@@ -122,12 +147,15 @@ and open the template in the editor.
                 let mask = new cv.Mat();
                 let color = new cv.Scalar(255, 255, 255);
                 let scale = 2;
-                // You can try more different parameters
+
+                //計算直方圖
                 cv.calcHist(srcVec, channels, mask, hist, histSize, ranges, accumulate);
                 cv.normalize(hist, hist, 0, 1, cv.NORM_MINMAX);//將直方圖範圍正規化 由 0-1 之間
                 let result = cv.minMaxLoc(hist, mask);
                 let max = result.maxVal;
                 let dst = new cv.Mat.zeros(imgin.rows, histSize[0] * scale, cv.CV_8UC3);
+
+                //畫直方圖
                 for (let i = 0; i < histSize[0]; i++) {
                     let binVal = hist.data32F[i] * imgin.rows / max;
                     let pioint1 = new cv.Point(i * scale, imgin.rows - 1);
@@ -140,7 +168,6 @@ and open the template in the editor.
                 };
                 histarray.push(histobject);
                 if (histcanvasid == "bank_seal") {
-                    console.log(histarray);
                     var hist1 = histarray[0].hist;
                     var hist2 = histarray[1].hist;
                     var method_0 = cv.compareHist(hist1, hist2, 0);//相關係數 CV_COMP_CORREL max=1 越大相似度越高  
@@ -167,10 +194,51 @@ and open the template in the editor.
             function CheckSimilarity(result) {
                 if (result >= 0.95) {
                     document.getElementById("compare_result").value = "符合";
-                    document.getElementById("compare_similarity").value = result*100 + " %";
+                    document.getElementById("compare_similarity").value = result * 100 + " %";
                 } else {
                     document.getElementById("compare_result").value = "不符合";
-                    document.getElementById("compare_similarity").value = result*100 + " %";
+                    document.getElementById("compare_similarity").value = result * 100 + " %";
+                }
+                DeployContract();
+            }
+            function DeployContract() {
+                var securitiesname = document.getElementById("securities_name").value;
+                var securitiesformat = document.getElementById("securities_format").value;
+                var securitiesipfshash = document.getElementById("securities_ipfshash").value;
+                var bankname = document.getElementById("bank_name").value;
+                var bankformat = document.getElementById("bank_format").value;
+                var bankipfshash = document.getElementById("bank_ipfshash").value;
+                var compareresult = document.getElementById("compare_result").value;
+                var comparesimilarity = document.getElementById("compare_similarity").value;
+                if (compareresult.length !== 0 && comparesimilarity.length !== 0) {
+                    var savesealContract = web3.eth.contract(contractABI);
+                    var saveseal = savesealContract.new(
+                            {
+                                from: web3.eth.accounts[0],
+                                data: contractByteCode,
+                                gas: '4700000'
+                            }, function (e, contract) {
+                        //console.log(e, contract);
+                        if (typeof contract.address !== 'undefined') {
+                            contractAddress = contract.address;
+                            SaveSeal(securitiesname, securitiesformat, securitiesipfshash, bankname, bankformat, bankipfshash, compareresult, comparesimilarity);
+                            //console.log('Contract mined! address: ' + contract.address + ' transactionHash: ' + contract.transactionHash);
+                        }
+                    })
+                } else {
+                    alert("尚未比對結果！！");
+                }
+            }
+            function SaveSeal(securitiesname, securitiesformat, securitiesipfshash, bankname, bankformat, bankipfshash, compareresult, comparesimilarity) {
+                if (contractABI !== "") {
+                    web3.eth.defaultAccount = web3.eth.accounts[0];
+                    var myContract = web3.eth.contract(contractABI);
+                    var myContractInstance = myContract.at(contractAddress);
+                    var result = myContractInstance.saveseal(securitiesname, securitiesformat, securitiesipfshash, bankname, bankformat, bankipfshash, compareresult, comparesimilarity, {
+                        from: web3.eth.accounts[0],
+                        gas: 300000000
+                    });
+                    document.getElementById("transaction_hash").value = result;
                 }
             }
         </script>
@@ -239,8 +307,7 @@ and open the template in the editor.
                 </div>
             </div>
             <!--當筆資料結果-->
-            <div class="w3-container w3-col l2 w3-margin-top"></div>
-            <div class="w3-container w3-col l8 m12 s12 w3-margin-top">
+            <div class="w3-container">
                 <div class="w3-card-4 w3-center">
                     <div class="w3-margin-top w3-margin-bottom">
                         <button class="w3-button w3-block w3-green" onclick="CompareSeal()">比對結果</button>
@@ -278,7 +345,6 @@ and open the template in the editor.
                     <footer class="w3-container"></footer>
                 </div>
             </div>
-            <div class="w3-container w3-col l2 w3-margin-top"></div>
         </div>
     </body>
 </html>
