@@ -14,6 +14,7 @@ and open the template in the editor.
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
         <script async src="https://docs.opencv.org/3.3.1/opencv.js" type="text/javascript" onload="onOpenCvReady()"></script>
         <script src="js/web3.js" type="text/javascript"></script>
+        <script src="js/abi-decoder.js" type="text/javascript"></script>
         <script src="js/ipfs.js" type="text/javascript"></script>
         <script src="js/buffer.js" type="text/javascript"></script>
         <style>
@@ -62,6 +63,7 @@ and open the template in the editor.
                     cv.imshow(tempcanvasid, mat);//結果的canvas id
                     mat.delete();
                 };
+                GetCompareResult();
             };
             function onOpenCvReady() {
                 var show_div = document.getElementById("show_div");
@@ -192,6 +194,7 @@ and open the template in the editor.
                 }
             }
             function CheckSimilarity(result) {
+                var result = Math.round(result * 10000) / 10000;
                 if (result >= 0.95) {
                     document.getElementById("compare_result").value = "符合";
                     document.getElementById("compare_similarity").value = result * 100 + " %";
@@ -224,7 +227,7 @@ and open the template in the editor.
                             SaveSeal(securitiesname, securitiesformat, securitiesipfshash, bankname, bankformat, bankipfshash, compareresult, comparesimilarity);
                             //console.log('Contract mined! address: ' + contract.address + ' transactionHash: ' + contract.transactionHash);
                         }
-                    })
+                    });
                 } else {
                     alert("尚未比對結果！！");
                 }
@@ -239,6 +242,90 @@ and open the template in the editor.
                         gas: 300000000
                     });
                     document.getElementById("transaction_hash").value = result;
+                }
+            }
+            function GetTranscation(abi) {
+                var decodedDataArray = [];
+                var blockNumber = web3.eth.blockNumber;
+                for (var i = 1; i <= blockNumber; i++) {
+                    var blockinfo = web3.eth.getBlock(i);
+                    var blockTransactionLength = blockinfo.transactions.length;
+                    if (blockTransactionLength > 0) {
+                        for (var j = 0; j < blockTransactionLength; j++) {
+                            var transaction = web3.eth.getTransaction(blockinfo.transactions[j]);
+                            abiDecoder.addABI(abi);
+                            var transaction_input = transaction.input;
+                            var decodedData = abiDecoder.decodeMethod(transaction_input);
+                            if (typeof decodedData != "undefined") {
+                                decodedData.transcationhash = transaction.hash;
+                            }
+                            decodedDataArray.push(decodedData);
+                            //console.log(decodedData);
+                        }
+                    }
+                }
+                //console.log(decodedDataArray);
+                abiDecoder.removeABI(abi);//清除abi cache
+                return decodedDataArray;
+            }
+            function GetCompareResult() {
+                var compareResult = GetTranscation(contractABI);
+                var cpArray = [];
+                var index = 1;
+                for (var i = 0; i < compareResult.length; i++) {
+                    if (typeof (compareResult[i]) !== "undefined") {
+                        var cpObject = {
+                            id: index,
+                            sipfshash: compareResult[i].params[2].value,
+                            bipfshash: compareResult[i].params[5].value,
+                            cpresult: compareResult[i].params[6].value,
+                            cpsimilarity: compareResult[i].params[7].value,
+                        }
+                        cpArray.push(cpObject);
+                        index++;
+                    }
+                }
+                ShowCompareResult(cpArray);
+            }
+            function ShowCompareResult(cpArray) {
+                var table = document.getElementById("show_cpresult");
+                var tr_head = document.createElement("tr");
+                tr_head.className = "w3-blue";
+                var th_id = document.createElement("th");
+                th_id.textContent = "編號";
+                tr_head.appendChild(th_id);
+                var th_sipfshash = document.createElement("th");
+                th_sipfshash.textContent = "證券商印鑑";
+                tr_head.appendChild(th_sipfshash);
+                var th_bipfshash = document.createElement("th");
+                th_bipfshash.textContent = "銀行印鑑";
+                tr_head.appendChild(th_bipfshash);
+                var th_cpresult = document.createElement("th");
+                th_cpresult.textContent = "比對結果";
+                tr_head.appendChild(th_cpresult);
+                var th_cpsimilarity = document.createElement("th");
+                th_cpsimilarity.textContent = "相似度";
+                tr_head.appendChild(th_cpsimilarity);
+                table.appendChild(tr_head);
+                for (var i = 0; i < cpArray.length; i++) {
+                    console.log(cpArray[i]);
+                    var tr = document.createElement("tr");
+                    var td_id = document.createElement("td");
+                    td_id.textContent = cpArray[i].id;
+                    tr.appendChild(td_id);
+                    var td_sipfshash = document.createElement("td");
+                    td_sipfshash.textContent = cpArray[i].sipfshash;
+                    tr.appendChild(td_sipfshash);
+                    var td_bipfshash = document.createElement("td");
+                    td_bipfshash.textContent = cpArray[i].bipfshash;
+                    tr.appendChild(td_bipfshash);
+                    var td_cpresult = document.createElement("td");
+                    td_cpresult.textContent = cpArray[i].cpresult;
+                    tr.appendChild(td_cpresult);
+                    var td_cpsimilarity = document.createElement("td");
+                    td_cpsimilarity.textContent = cpArray[i].cpsimilarity;
+                    tr.appendChild(td_cpsimilarity);
+                    table.appendChild(tr);
                 }
             }
         </script>
@@ -309,8 +396,12 @@ and open the template in the editor.
             <!--當筆資料結果-->
             <div class="w3-container">
                 <div class="w3-card-4 w3-center">
-                    <div class="w3-margin-top w3-margin-bottom">
-                        <button class="w3-button w3-block w3-green" onclick="CompareSeal()">比對結果</button>
+                    <div class="w3-container w3-margin-top w3-margin-bottom">
+                        <div class="w3-container w3-margin">
+                            <div class="w3-col l12 m12 s12">
+                                <button class="w3-button w3-block w3-green" onclick="CompareSeal()">比對結果</button>
+                            </div>
+                        </div>
                     </div>
                     <div class="w3-container w3-margin-top w3-margin-bottom">
                         <div class="w3-container w3-margin">
@@ -343,6 +434,11 @@ and open the template in the editor.
                         </div>
                     </div>
                     <footer class="w3-container"></footer>
+                </div>
+            </div>
+            <div class="w3-container">
+                <div class="w3-margin-top w3-margin-bottom">
+                    <table class="w3-table-all w3-hoverable w3-card-4 w3-centered" id="show_cpresult"></table>
                 </div>
             </div>
         </div>
