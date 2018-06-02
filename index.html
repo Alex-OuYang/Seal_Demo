@@ -308,16 +308,23 @@ and open the template in the editor.
                 tr_head.appendChild(th_cpsimilarity);
                 table.appendChild(tr_head);
                 for (var i = 0; i < cpArray.length; i++) {
-                    console.log(cpArray[i]);
                     var tr = document.createElement("tr");
                     var td_id = document.createElement("td");
                     td_id.textContent = cpArray[i].id;
                     tr.appendChild(td_id);
                     var td_sipfshash = document.createElement("td");
-                    td_sipfshash.textContent = cpArray[i].sipfshash;
+                    var td_sipfshash_img = document.createElement("img");
+                    td_sipfshash_img.src = "https://ipfs.io/ipfs/" + cpArray[i].sipfshash;
+                    td_sipfshash_img.width = "100";
+                    td_sipfshash_img.height = "100";
+                    td_sipfshash.appendChild(td_sipfshash_img);
                     tr.appendChild(td_sipfshash);
                     var td_bipfshash = document.createElement("td");
-                    td_bipfshash.textContent = cpArray[i].bipfshash;
+                    var td_bipfshash_img = document.createElement("img");
+                    td_bipfshash_img.src = "https://ipfs.io/ipfs/" + cpArray[i].bipfshash;
+                    td_bipfshash_img.width = "100";
+                    td_bipfshash_img.height = "100";
+                    td_bipfshash.appendChild(td_bipfshash_img);
                     tr.appendChild(td_bipfshash);
                     var td_cpresult = document.createElement("td");
                     td_cpresult.textContent = cpArray[i].cpresult;
