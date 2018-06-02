@@ -13,21 +13,170 @@ and open the template in the editor.
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
         <script async src="https://docs.opencv.org/3.3.1/opencv.js" type="text/javascript" onload="onOpenCvReady()"></script>
+        <script src="js/ipfs.js" type="text/javascript"></script>
+        <script src="js/buffer.js" type="text/javascript"></script>
         <style>
             *{
                 font-family: Microsoft JhengHei;
             }
         </style>
         <script>
+            //IPFS 初始
+            //const ipfs = window.IpfsApi('localhost', '5001');//使用 IPFS daemon 
+            var ipfs = window.IpfsApi({host: 'ipfs.infura.io', port: '5001', protocol: 'https'});//使用 public IPFS
+            //IPFS 初始
+
+            var imgsrc = "";
+            var imgname = "";
+            var tempcanvasid = '';
+            var histarray = [];
+            window.onload = function () {
+                imgsrc = document.createElement("img");
+                imgsrc.onload = function () {
+                    if (imgname === "securities") {
+                        tempcanvasid = "securities_seal";
+                    } else if (imgname === "bank") {
+                        tempcanvasid = "bank_seal";
+                    }
+                    let mat = cv.imread(imgsrc);//放 input img 後顯示的 img tag id
+                    cv.imshow(tempcanvasid, mat);//結果的canvas id
+                    mat.delete();
+                };
+            };
             function onOpenCvReady() {
                 var show_div = document.getElementById("show_div");
                 show_div.className = "w3-panel w3-pale-green w3-center";
                 document.getElementById("show_opencv_onload").innerHTML = "<strong>OpenCV is onload！！！</strong>";
             }
+            function openInputImg(img) {
+                imgname = img.name;
+                var ipfshash_str = img.name + "_ipfshash";
+                var file = img.files[0];
+                var reader = new FileReader();
+                reader.onload = function () {
+                    var tmpfilename = file.name;
+                    var filesplit = tmpfilename.split(".");
+                    var filename = filesplit[0];
+                    var fileformat = filesplit[1];
+                    if (imgname === "securities") {
+                        document.getElementById("securities_name").value = filename;
+                        document.getElementById("securities_format").value = fileformat;
+                    } else if (imgname === "bank") {
+                        document.getElementById("bank_name").value = filename;
+                        document.getElementById("bank_format").value = fileformat;
+                    }
+                    const buf = buffer.Buffer(reader.result);//ArrayBuffer to buffer
+                    console.log(buf);
+                    IPFSAdd(buf, ipfshash_str);
+                };
+                reader.readAsArrayBuffer(file);
+                //顯示img 為 canvas
+                var imgtype = img.files[0].type;
+                var imgtypearray = imgtype.split("/");
+                if (imgtypearray[0] == "image") {
+                    var imgsrcurl = URL.createObjectURL(img.files[0]);
+                    imgsrc.src = imgsrcurl;
+                } else {
+                    alert("請輸入圖片格式！！");
+                }
 
+            }
+            function IPFSAdd(buf, ipfshash_str) {//新增檔案
+                if (buf !== "") {
+                    const files = [{
+                            path: '/test', //存放在ipfs上檔案位置
+                            content: buf//檔案
+                        }];
+                    var hash;
+                    ipfs.files.add(files, function (err, files) {
+                        hash = files[0].hash;
+                        document.getElementById(ipfshash_str).value = hash;
+                    });
+                    ipfs.pin.add(hash, function (err) {});//自動同步到ipfs鏈上
+                }
+            }
+            function CompareSeal() {
+                var securitiesCanvas = document.getElementById("securities_seal");
+                var bankCanvas = document.getElementById("bank_seal");
+                let securitiesSeal = cv.imread(securitiesCanvas);
+                let bankSeal = cv.imread(bankCanvas);
+                createHist(securitiesSeal, "securities_seal");
+                createHist(bankSeal, "bank_seal");
+            }
+            function createHist(imgin, imgstring) {
+                var histobject = {};
+                var histcanvasid;
+                if (imgstring == "securities_seal") {
+                    histcanvasid = "securities_seal";
+                } else if (imgstring == "bank_seal") {
+                    histcanvasid = "bank_seal";
+                }
+                cv.cvtColor(imgin, imgin, cv.COLOR_RGBA2GRAY, 0);
+                let srcVec = new cv.MatVector();
+                srcVec.push_back(imgin);
+                let accumulate = false;
+                let channels = [0];
+                let histSize = [256];
+                let ranges = [0, 255];
+                let hist = new cv.Mat();
+                let mask = new cv.Mat();
+                let color = new cv.Scalar(255, 255, 255);
+                let scale = 2;
+                // You can try more different parameters
+                cv.calcHist(srcVec, channels, mask, hist, histSize, ranges, accumulate);
+                cv.normalize(hist, hist, 0, 1, cv.NORM_MINMAX);//將直方圖範圍正規化 由 0-1 之間
+                let result = cv.minMaxLoc(hist, mask);
+                let max = result.maxVal;
+                let dst = new cv.Mat.zeros(imgin.rows, histSize[0] * scale, cv.CV_8UC3);
+                for (let i = 0; i < histSize[0]; i++) {
+                    let binVal = hist.data32F[i] * imgin.rows / max;
+                    let pioint1 = new cv.Point(i * scale, imgin.rows - 1);
+                    let pioint2 = new cv.Point((i + 1) * scale - 1, imgin.rows - binVal);
+                    cv.rectangle(dst, pioint1, pioint2, color, cv.FILLED);
+                }
+                histobject = {
+                    hist: hist,
+                    name: histcanvasid
+                };
+                histarray.push(histobject);
+                if (histcanvasid == "bank_seal") {
+                    console.log(histarray);
+                    var hist1 = histarray[0].hist;
+                    var hist2 = histarray[1].hist;
+                    var method_0 = cv.compareHist(hist1, hist2, 0);//相關係數 CV_COMP_CORREL max=1 越大相似度越高  
+                    var method_1 = cv.compareHist(hist1, hist2, 1);//卡方係數 CV_COMP_CHISQR max=無限制 min=0 越小相似度越高 
+                    var method_2 = cv.compareHist(hist1, hist2, 2);//相交係數 CV_COMP_INTERSECT max=9.542171321008937 min=0 越大相似度越高
+                    var method_3 = cv.compareHist(hist1, hist2, 3);//Bhattacharyya distance min=0 越小相似度越高
+                    var method_4 = cv.compareHist(hist1, hist2, 4);
+                    var method_5 = cv.compareHist(hist1, hist2, 5);
+                    console.log("Correlation：" + method_0);
+                    console.log("method_1 " + method_1);
+                    console.log("method_2 " + method_2);
+                    console.log("method_3 " + method_3);
+                    console.log("method_4 " + method_4);
+                    console.log("method_5 " + method_5);
+                    imgin.delete();
+                    dst.delete();
+                    srcVec.delete();
+                    mask.delete();
+                    hist.delete();
+                    histarray.length = 0;//清空array
+                    CheckSimilarity(method_0);
+                }
+            }
+            function CheckSimilarity(result) {
+                if (result >= 0.95) {
+                    document.getElementById("compare_result").value = "符合";
+                    document.getElementById("compare_similarity").value = result*100 + " %";
+                } else {
+                    document.getElementById("compare_result").value = "不符合";
+                    document.getElementById("compare_similarity").value = result*100 + " %";
+                }
+            }
         </script>
     </head>
     <body class="w3-light-grey">
+        <!--title bar-->
         <div class="w3-bar w3-black">
             <div class="w3-bar-item w3-right"><span class="w3-bar-item w3-right"><i class="fa fa-sign-out"></i></span></div>
         </div>
@@ -44,7 +193,7 @@ and open the template in the editor.
                         <h4><b>&nbsp;&nbsp;證&nbsp;券&nbsp;商&nbsp;端&nbsp;上&nbsp;傳&nbsp;印&nbsp;鑑</b></h4>
                     </header>
                     <div class="w3-container w3-margin-top w3-margin-bottom">
-                        <input class="w3-input w3-border" type="file" accept="image/*"/>
+                        <input class="w3-input w3-border" type="file" name="securities" accept="image/*" onchange="openInputImg(this)"/>
                     </div>
                     <div class="w3-container w3-margin-top w3-margin-bottom">
                         <canvas class="w3-border" id="securities_seal"></canvas>
@@ -56,6 +205,8 @@ and open the template in the editor.
                             </div>
                             <div class="w3-col l10 m10 s10">
                                 <input class="w3-input w3-border" type="text" id="securities_ipfshash" readonly>
+                                <input type="hidden" id="securities_name"/>
+                                <input type="hidden" id="securities_format"/>
                             </div>
                         </div>
                     </footer>
@@ -68,10 +219,10 @@ and open the template in the editor.
                         <h4><b>&nbsp;&nbsp;銀&nbsp;行&nbsp;端&nbsp;上&nbsp;傳&nbsp;印&nbsp;鑑</b></h4>
                     </header>
                     <div class="w3-container w3-margin-top w3-margin-bottom">
-                        <input class="w3-input w3-border" type="file" accept="image/*"/>
+                        <input class="w3-input w3-border" type="file" accept="image/*" name="bank" onchange="openInputImg(this)"/>
                     </div>
                     <div class="w3-container w3-margin-top w3-margin-bottom">
-                        <canvas class="w3-border" id="securities_seal"></canvas>
+                        <canvas class="w3-border" id="bank_seal"></canvas>
                     </div>
                     <footer class="w3-container">
                         <div class="w3-container w3-margin">
@@ -80,6 +231,8 @@ and open the template in the editor.
                             </div>
                             <div class="w3-col l10 m10 s10">
                                 <input class="w3-input w3-border" type="text" id="bank_ipfshash" readonly>
+                                <input type="hidden" id="bank_name"/>
+                                <input type="hidden" id="bank_format"/>
                             </div>
                         </div>
                     </footer>
@@ -90,17 +243,7 @@ and open the template in the editor.
             <div class="w3-container w3-col l8 m12 s12 w3-margin-top">
                 <div class="w3-card-4 w3-center">
                     <div class="w3-margin-top w3-margin-bottom">
-                        <button class="w3-button w3-block w3-green">比對結果</button>
-                    </div>
-                    <div class="w3-container w3-margin-top w3-margin-bottom">
-                        <div class="w3-container w3-margin">
-                            <div class="w3-col l2 m2 s2">
-                                <label><b>Transaction<br>Hash</b></label>
-                            </div>
-                            <div class="w3-col l10 m10 s10">
-                                <input class="w3-input w3-border" type="text" id="transaction_hash" readonly>
-                            </div>
-                        </div>
+                        <button class="w3-button w3-block w3-green" onclick="CompareSeal()">比對結果</button>
                     </div>
                     <div class="w3-container w3-margin-top w3-margin-bottom">
                         <div class="w3-container w3-margin">
@@ -118,7 +261,17 @@ and open the template in the editor.
                                 <label><b>相似度</b></label>
                             </div>
                             <div class="w3-col l10 m10 s10">
-                                <input class="w3-input w3-border" type="text" id="compare_result" readonly>
+                                <input class="w3-input w3-border" type="text" id="compare_similarity" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w3-container w3-margin-top w3-margin-bottom">
+                        <div class="w3-container w3-margin">
+                            <div class="w3-col l2 m2 s2">
+                                <label><b>Transaction<br>Hash</b></label>
+                            </div>
+                            <div class="w3-col l10 m10 s10">
+                                <input class="w3-input w3-border" type="text" id="transaction_hash" readonly>
                             </div>
                         </div>
                     </div>
