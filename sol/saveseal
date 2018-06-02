@@ -1,0 +1,22 @@
+pragma solidity ^0.4.18;
+contract SaveSeal{
+    string private securitiesname;
+    string private securitiesformat;
+    string private securitiesipfshash;
+    string private bankname;
+    string private bankformat;
+    string private bankipfshash;
+    string private compareresult;
+    string private comparesimilarity;
+    
+    function saveseal(string sname,string sformat,string sipfshash,string bname,string bformat,string bipfshash,string cpresult,string cpsimilarity)public{
+        securitiesname=sname;
+        securitiesformat=sformat;
+        securitiesipfshash=sipfshash;
+        bankname=bname;
+        bankformat=bformat;
+        bankipfshash=bipfshash;
+        compareresult=cpresult;
+        comparesimilarity=cpsimilarity;
+    }
+}
