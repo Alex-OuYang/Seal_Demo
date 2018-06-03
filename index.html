@@ -24,8 +24,8 @@ and open the template in the editor.
         </style>
         <script>
             //連接區塊鏈
-            var connectIP = "140.124.93.79";
-            //var connectIP = "localhost";
+            //var connectIP = "140.124.93.79";
+            var connectIP = "localhost";
             var Web3 = require('web3');
             var web3 = new Web3();
             web3.setProvider(new web3.providers.HttpProvider("http://" + connectIP + ":8545"));
@@ -52,6 +52,16 @@ and open the template in the editor.
             var tempcanvasid = '';
             var histarray = [];
             window.onload = function () {
+                var nodestring = web3.version.node;
+                var nodeStringSplit = nodestring.split("/");
+                if (nodeStringSplit[0] === "Geth") {
+                    var account = web3.eth.accounts[0];
+                    var pwd = "123";
+                    web3.personal.unlockAccount(account, pwd);
+                    console.log(nodeStringSplit[0]);
+                } else if (nodeStringSplit[0] === "EthereumJS TestRPC") {
+                    console.log(nodeStringSplit[0]);
+                }
                 imgsrc = document.createElement("img");
                 imgsrc.onload = function () {
                     if (imgname === "securities") {
